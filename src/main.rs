@@ -9,99 +9,42 @@ use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch
 
 use cortex_m::asm;
 use cortex_m_rt::entry;
+use cortex_m::delay::Delay;
 
-fn device_init() {
-    // power clock enable
-    let periph_base = 0x40000000u32;
-    let ahb1periph_base = periph_base + 0x00020000u32;
-    let rcc_base = ahb1periph_base + 0x3800u32;
-    let rcc_ahb1enr = rcc_base + 0x30;
+use stm32_hal2::{
+    clocks::Clocks,
+    gpio::{Pin, Port, PinMode, OutputType},
+    pac
+};
 
-    let rcc_apb1enr_pwren =  1u32 << 0u32;
-    unsafe { core::ptr::write_volatile(rcc_ahb1enr as *mut u32, rcc_apb1enr_pwren) }
-
-
-}
-
-fn gpio_init() {
-    // set PA5 to output, push/pull, pull-up, low-speed
-
-    // PortA is at 0x40020000
-    let port_addr: u32 = 0x4002_0000;
-    let pin = 5;
-    let pin_mask = 1 << pin;
-
-    // Reset pin
-    let bsrr_addr = port_addr + 0x18;
-    let bsrr_value = pin_mask << 16;
-    // let bsrr_value = pin_mask ;
-    unsafe { core::ptr::write_volatile(bsrr_addr as *mut u32, bsrr_value) }
-
-    // Set speed
-    let low_speed_value = 0x00;
-    let ospeedr_addr = port_addr + 0x08;
-    let ospeedr_value = low_speed_value << (pin * 2);
-    unsafe { core::ptr::write_volatile(ospeedr_addr as *mut u32, ospeedr_value) }
-
-    // Set output type
-    let otyper_value = 0x00;
-    let otyper_addr = port_addr + 0x04;
-    unsafe { core::ptr::write_volatile(otyper_addr as *mut u32, otyper_value) }
-
-    // Set pullup/pulldown
-    let pupdr_addr = port_addr + 0x0C;
-    let mut pupdr_value: u32;
-    unsafe {
-        pupdr_value = core::ptr::read_volatile(pupdr_addr as *mut u32);
-    }
-    let pin5_mask: u32 = 3 << 10;
-    pupdr_value = (pupdr_value & (!pin5_mask)) | (0x1 << 10);
-    unsafe { core::ptr::write_volatile(pupdr_addr as *mut u32, pupdr_value) }
-
-    // Set as output
-    let moder_addr = port_addr + 0x00;
-    let mut moder_value: u32;
-    unsafe {
-        moder_value = core::ptr::read_volatile(moder_addr as *mut u32);
-    }
-    moder_value = moder_value & !(3 << 10u32); // reset mode for pin5
-    moder_value = moder_value | (1 << 10u32);
-    unsafe { core::ptr::write_volatile(moder_addr as *mut u32, moder_value) }
-
-    // set alt
-    let afrl_addr = port_addr + 0x20;
-    unsafe { core::ptr::write_volatile(afrl_addr as *mut u32, 0x00) }
-
-
-}
 
 #[entry]
 fn main() -> ! {
     asm::nop(); // To not have main optimize to abort in release mode, remove when you add code
+    
+    let _dp = pac::Peripherals::take().unwrap();
 
-    device_init();
+    let clock_cfg = Clocks::default();
+    clock_cfg.setup().unwrap();
 
-    gpio_init();
-    let port_addr: u32 = 0x4002_0000;
-    let bsrr_addr = port_addr + 0x18;
+    let cp = cortex_m::Peripherals::take().unwrap();
+    let mut delay = Delay::new(cp.SYST, clock_cfg.systick());
 
-    let mut on :bool = true;
+    let mut pin5 = Pin::new(Port::A, 5, PinMode::Output);
+    pin5.output_type(OutputType::PushPull);
+    pin5.set_low();
+    pin5.output_speed(stm32_hal2::gpio::OutputSpeed::High);
+
+    let mut set_on: bool = false;
+
+    const DELAY_TIME_MS: u32  = 30;
 
     loop {
-        on = !on;
-        let pin5_hi = set_pin(on);
-        unsafe { core::ptr::write_volatile(bsrr_addr as *mut u32, pin5_hi) }
-
-        for _ in 0..20000{
-            asm::nop();
+        match set_on {
+            false => pin5.set_low(),
+            true => pin5.set_high()
         }
-
-    }
-}
-
-fn set_pin(on: bool) -> u32{
-    match on{
-        true => 1<<5,
-        false => 1<<(5+16)
+        delay.delay_ms(DELAY_TIME_MS);
+        set_on = !set_on;
     }
 }
