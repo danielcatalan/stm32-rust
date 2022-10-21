@@ -14,19 +14,32 @@ use cortex_m_rt::entry;
 fn gpio_init()
 {
 
-    // set PA5 to output, push/pull, pull-up
+    // set PA5 to output, push/pull, pull-up, low-speed
 
     // PortA is at 0x40020000
     let port_addr = 0x4002_0000;
-    let pin = 0x20;
+    let pin = 5;
+    let pin_mask = 1<<pin;
 
-    let bsrr_arr = port_addr + 0x18;
-    let bsrr_value = pin << 16;
-
-    // Reset pin
+     // Reset pin
+    let bsrr_addr = port_addr + 0x18;
+    let bsrr_value = pin_mask << 16;   
     unsafe{
-        core::ptr::write_volatile(bsrr_arr as *mut u32, bsrr_value)
+        core::ptr::write_volatile(bsrr_addr as *mut u32, bsrr_value)
     }
+
+    // Set speed
+    let low_speed_value = 0x00;
+    let ospeedr_addr = port_addr + 0x08;
+    let ospeedr_value = low_speed_value << (pin*2);
+    unsafe{
+        core::ptr::write_volatile(ospeedr_addr as *mut u32, ospeedr_value)
+    }
+
+    // Set output type
+    
+    // Set pullup/pulldown
+
 
 }
 
