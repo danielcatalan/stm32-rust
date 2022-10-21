@@ -11,7 +11,16 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 
 fn device_init() {
-    
+    // power clock enable
+    let periph_base = 0x40000000u32;
+    let ahb1periph_base = periph_base + 0x00020000u32;
+    let rcc_base = ahb1periph_base + 0x3800u32;
+    let rcc_ahb1enr = rcc_base + 0x30;
+
+    let rcc_apb1enr_pwren =  1u32 << 0u32;
+    unsafe { core::ptr::write_volatile(rcc_ahb1enr as *mut u32, rcc_apb1enr_pwren) }
+
+
 }
 
 fn gpio_init() {
@@ -25,6 +34,7 @@ fn gpio_init() {
     // Reset pin
     let bsrr_addr = port_addr + 0x18;
     let bsrr_value = pin_mask << 16;
+    // let bsrr_value = pin_mask ;
     unsafe { core::ptr::write_volatile(bsrr_addr as *mut u32, bsrr_value) }
 
     // Set speed
@@ -62,8 +72,7 @@ fn gpio_init() {
     let afrl_addr = port_addr + 0x20;
     unsafe { core::ptr::write_volatile(afrl_addr as *mut u32, 0x00) }
 
-    let pin5_hi: u32 = 1 << 5;
-    unsafe { core::ptr::write_volatile(bsrr_addr as *mut u32, pin5_hi) }
+
 }
 
 #[entry]
@@ -73,8 +82,26 @@ fn main() -> ! {
     device_init();
 
     gpio_init();
+    let port_addr: u32 = 0x4002_0000;
+    let bsrr_addr = port_addr + 0x18;
+
+    let mut on :bool = true;
 
     loop {
-        // your code goes here
+        on = !on;
+        let pin5_hi = set_pin(on);
+        unsafe { core::ptr::write_volatile(bsrr_addr as *mut u32, pin5_hi) }
+
+        for _ in 0..20000{
+            asm::nop();
+        }
+
+    }
+}
+
+fn set_pin(on: bool) -> u32{
+    match on{
+        true => 1<<5,
+        false => 1<<(5+16)
     }
 }
