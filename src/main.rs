@@ -37,7 +37,7 @@ fn main() -> ! {
 
     let mut set_on: bool = false;
 
-    const DELAY_TIME_MS: u32  = 30;
+    const DELAY_TIME_MS: u32  = 100;
 
     loop {
         match set_on {
