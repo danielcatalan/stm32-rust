@@ -20,8 +20,6 @@ use stm32_hal2::{
 
 #[entry]
 fn main() -> ! {
-    asm::nop(); // To not have main optimize to abort in release mode, remove when you add code
-    
     let _dp = pac::Peripherals::take().unwrap();
 
     let clock_cfg = Clocks::default();
