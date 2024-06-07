@@ -10,7 +10,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"usernamehw.errorlens"
+				"usernamehw.errorlens",
+				"marus25.cortex-debug"
 			]
 		}
 	}
