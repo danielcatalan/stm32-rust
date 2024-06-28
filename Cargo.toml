@@ -9,6 +9,7 @@ version = "0.1.0"
 cortex-m = "0.7.3"
 cortex-m-rt = "0.7.0"
 panic-halt = "0.2.0"
+embedded-hal = "1.0.0"
 stm32f4xx-hal = { version = "0.21.0", features = ["stm32f446"]}
 
 # Uncomment for semihosting

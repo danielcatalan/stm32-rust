@@ -3,9 +3,33 @@
 
 // pick a panicking behavior
 use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch panics
-// use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
+                     // use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
 use cortex_m_rt::entry;
-use stm32f4xx_hal::{gpio::PinState, pac, prelude::*, rcc::RccExt};
+use embedded_hal::digital::OutputPin;
+use stm32f4xx_hal::{pac, prelude::*, rcc::RccExt};
+
+struct Led<Pin> {
+    pin: Pin,
+    state: bool,
+}
+
+impl<Pin: OutputPin> Led<Pin> {
+    pub fn new(pin: Pin) -> Self {
+        Led { pin, state: false }
+    }
+
+    pub fn toggle(&mut self) {
+        self.state = !self.state;
+        match self.state {
+            true => {
+                let _ = self.pin.set_high();
+            }
+            false => {
+                let _ = self.pin.set_low();
+            }
+        }
+    }
+}
 
 #[entry]
 fn main() -> ! {
@@ -15,23 +39,17 @@ fn main() -> ! {
     let rcc = dp.RCC.constrain();
     let clocks = rcc.cfgr.sysclk(180.MHz()).freeze();
 
-
     let mut delay = cp.SYST.delay(&clocks);
 
     let gpioa = dp.GPIOA.split();
-    let mut led = gpioa.pa5.into_push_pull_output();
+    let pin = gpioa.pa5.into_push_pull_output();
+    let mut led = Led::new(pin);
 
-    let mut set_on: bool = false;
-
-    const DELAY_TIME_MS: u32 = 1000;
+    const DELAY_TIME_MS: u32 = 500;
 
     loop {
-        match set_on {
-            true => led.set_state(PinState::High),
-            false => led.set_state(PinState::Low),
-        }
+        led.toggle();
 
         delay.delay_ms(DELAY_TIME_MS);
-        set_on = !set_on;
     }
 }
