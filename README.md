@@ -5,3 +5,5 @@ Simple Blink project for STM32F446RE written in Rust. This project acts as a bas
 `cargo generate --git https://github.com/danielcatalan/stm32-rust.git`
 
 
+## Flashing Board ##
+`cargo embed --chip STM32F446RETx`
