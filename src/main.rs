@@ -7,6 +7,8 @@ use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch
 use cortex_m_rt::entry;
 use embedded_hal::digital::OutputPin;
 use stm32f4xx_hal::{pac, prelude::*, rcc::RccExt};
+use rtt_target::{debug_rprintln, debug_rtt_init_print};
+
 
 struct Led<Pin> {
     pin: Pin,
@@ -33,6 +35,8 @@ impl<Pin: OutputPin> Led<Pin> {
 
 #[entry]
 fn main() -> ! {
+    debug_rtt_init_print!(); // init Debug RTT
+
     let dp = pac::Peripherals::take().unwrap();
     let cp = cortex_m::Peripherals::take().unwrap();
 
@@ -49,7 +53,7 @@ fn main() -> ! {
 
     loop {
         led.toggle();
-
+        debug_rprintln!("Led toggled!");
         delay.delay_ms(DELAY_TIME_MS);
     }
 }
