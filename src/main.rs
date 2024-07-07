@@ -9,6 +9,11 @@ use embedded_hal::digital::OutputPin;
 use stm32f4xx_hal::{pac, prelude::*, rcc::RccExt};
 use rtt_target::{debug_rprintln, debug_rtt_init_print};
 
+#[derive(Debug)]
+enum PinState{
+    High,
+    Low
+}
 
 struct Led<Pin> {
     pin: Pin,
@@ -20,14 +25,16 @@ impl<Pin: OutputPin> Led<Pin> {
         Led { pin, state: false }
     }
 
-    pub fn toggle(&mut self) {
+    pub fn toggle(&mut self) -> PinState {
         self.state = !self.state;
         match self.state {
             true => {
                 let _ = self.pin.set_high();
+                PinState::High
             }
             false => {
                 let _ = self.pin.set_low();
+                PinState::Low
             }
         }
     }
@@ -49,11 +56,11 @@ fn main() -> ! {
     let pin = gpioa.pa5.into_push_pull_output();
     let mut led = Led::new(pin);
 
-    const DELAY_TIME_MS: u32 = 500;
+    const DELAY_TIME_MS: u32 = 1000;
 
     loop {
-        led.toggle();
-        debug_rprintln!("Led toggled!");
+        let state = led.toggle();
+        debug_rprintln!("Led toggled: {:#?}", state);
         delay.delay_ms(DELAY_TIME_MS);
     }
 }

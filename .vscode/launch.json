@@ -10,12 +10,11 @@
             "type": "probe-rs-debug",
             "request": "launch",
             "name": "probe-rs Test",
-            "cwd": "",
-            "connectUnderReset": false,
+            "cwd": "${workspaceFolder}",
             "chip": "STM32F446RETx",
             "flashingConfig": {
                 "flashingEnabled": true,
-                "haltAfterReset": true
+                "haltAfterReset": false,
             },
             "coreConfigs": [
                 {
