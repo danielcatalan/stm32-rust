@@ -59,5 +59,14 @@
             "problemMatcher": [],
             "group": "build"
         },
+        {
+            "label": "Cargo Run",
+            "type":"process",
+            "command": "cargo",
+            "args": ["run"],
+            "problemMatcher": [],
+            "group": "build"
+        },
+        
     ]
 }

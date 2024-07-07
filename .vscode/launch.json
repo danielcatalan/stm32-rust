@@ -7,22 +7,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "probe-rs-debug",
-            "request": "launch",
-            "name": "probe-rs Test",
-            "cwd": "${workspaceFolder}",
-            "chip": "STM32F446RETx",
-            "flashingConfig": {
-                "flashingEnabled": true,
-                "haltAfterReset": false,
-            },
-            "coreConfigs": [
-                {
-                    "programBinary": "./target/thumbv7em-none-eabihf/debug/blink"
-                }
-            ]
-        },
-        {
             /* Configuration for the STM32F303 Discovery board */
             "type": "cortex-debug",
             "request": "launch",
@@ -38,7 +22,19 @@
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
                 "target/stm32f4x.cfg"
-            ]
+            ],
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "decoders": [
+                    {
+                        "label": "",
+                        "port": 0,
+                        "type": "console"
+                    }
+                ]
+            },
+            "armToolchainPath": "C:/dev/arm-gnu-toolchain/bin",
         }
     ]
 }

@@ -1,6 +1,14 @@
 [default.general]
 chip = "STM32F446RETx"
 
+
+[default.gdb]
+enabled = true
+
+[default.reset]
+halt_afterwards = true
+
 [with_rtt.rtt]
 enabled = true
+
 
